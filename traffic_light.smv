@@ -1,0 +1,15 @@
+MODULE main
+VAR
+  state : {red, green, yellow};
+
+ASSIGN
+  init(state) := red;
+  next(state) :=
+    case
+      state = red : green;
+      state = green : yellow;
+      state = yellow : red;
+    esac;
+
+SPEC
+  AG (state != green -> AX (state = red))
