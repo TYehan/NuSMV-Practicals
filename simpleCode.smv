@@ -1,0 +1,9 @@
+MODULE main
+VAR
+    location: {l1,l2};
+ASSIGN
+    init(location) := l1;
+    next(location) := case
+        (location = l1): l2;
+        (location = l2): l1;
+    esac;
