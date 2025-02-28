@@ -1,5 +1,9 @@
 # NuSMV Practicals
 
+This repository includes practicals on concurrent system modeling and simulations using NuSMV.
+The purpose of running this NuSMV models is to understand the behavior of concurrent systems and to verify the correctness of the system.
+This helps to identify the potential issues in the system and to fix them before the system is implemented.
+
 <small>This repository contains the practicals of the course "Formal Methods in Software Engineering" which is a part of the curriculum of the 7th semester of the BSc. (Hons.) Software Engineering program at General Sir John Kotelawala Defence University.</small>
  
 ## Table of Contents
