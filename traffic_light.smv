@@ -1,15 +1,21 @@
 MODULE main
+-- Declare a variable representing the traffic light state.
 VAR
   state : {red, green, yellow};
 
 ASSIGN
+  -- Initialize the traffic light to red at the start.
   init(state) := red;
+  
+  -- Define transitions between traffic light states in a cyclic manner.
   next(state) :=
     case
-      state = red : green;
-      state = green : yellow;
-      state = yellow : red;
+      state = red : green;    -- From red to green.
+      state = green : yellow; -- From green to yellow.
+      state = yellow : red;   -- From yellow back to red.
     esac;
 
 SPEC
+  -- Specification: For all states, if the state is not green,
+  -- then in the next state it must be red.
   AG (state != green -> AX (state = red))
