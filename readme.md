@@ -20,7 +20,6 @@ This helps to identify the potential issues in the system and to fix them before
       - [Start the NuSMV interactive shell by typing:](#start-the-nusmv-interactive-shell-by-typing)
       - [Load the SMV file:](#load-the-smv-file)
       - [Process the model step by entering theses commands sequentially:](#process-the-model-step-by-entering-theses-commands-sequentially)
-      - [Inspect the current state:](#inspect-the-current-state)
       - [Execute the model:](#execute-the-model)
       - [To quit the interactive shell, when finished:](#to-quit-the-interactive-shell-when-finished)
     
@@ -165,7 +164,8 @@ NuSMV -int
 read_model -i <file>.smv
 ```
 
-Replace <file>.smv with the file name of your model.
+Replace <file>.smv with the file name of your model. 
+When including the file name you can specify the path as well if the file is not in the current directory.
 
 #### Process the model step by entering theses commands sequentially: 
 
@@ -175,18 +175,13 @@ encode_variables
 build_model
 pick_state -i
 ```
-#### Inspect the current state:
-
-```bash
-print_all_states
-```
 
 #### Execute the model:
 ```bash
-simulate -k <steps>
+simulate -i -k <stepCount>
 ```
 
-Replace `<steps>` with the number of steps you want to simulate.
+Replace `<stepCount>` with the number of steps you want to simulate.
 
 #### To quit the interactive shell, when finished:
 
