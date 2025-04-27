@@ -1,0 +1,70 @@
+-- NuSMV model for a Smart Door Lock system
+MODULE main
+VAR
+    state       : {Locked, Unlocked};
+    code_entry  : {no_entry, correct, incorrect};
+    timer       : 0..10;      -- 10-second timer
+    manual_lock : boolean;    -- User manually locks the door
+
+ASSIGN
+    -- Initial states
+    init(state)       := Locked;
+    init(timer)       := 0;
+    init(manual_lock) := FALSE;
+    init(code_entry)  := no_entry;
+
+    -- State transition logic
+    next(state) :=
+        case
+            state = Locked & code_entry = correct          : Unlocked;
+            state = Unlocked & (timer = 10 | manual_lock)  : Locked;
+            TRUE                                           : state;
+        esac;
+
+    -- Timer logic: increments in unlocked state, resets in locked state
+    next(timer) :=
+        case
+            state = Unlocked & timer < 10  : timer + 1;
+            state = Locked                 : 0;
+            TRUE                           : timer;
+        esac;
+
+    -- code_entry and manual_lock change non-deterministically
+    -- Simulating user input
+    next(code_entry) := {no_entry, correct, incorrect};
+    next(manual_lock) :=
+        case
+            state = Locked : FALSE;  -- Can't manually lock an already locked door
+            TRUE          : {TRUE, FALSE};
+        esac;
+
+
+-- Properties to verify
+
+-- Safety Properties:
+-- When correct code is entered while locked, door unlocks in next state
+CTLSPEC AG(state = Locked & code_entry = correct -> AX state = Unlocked)
+-- When incorrect code is entered, door remains locked
+CTLSPEC AG(state = Locked & code_entry = incorrect -> AX state = Locked)
+
+-- Liveness Properties:
+-- Correct code eventually leads to unlocked state
+CTLSPEC AG(code_entry = correct -> AF state = Unlocked)
+-- Unlocked door eventually becomes locked
+CTLSPEC AG(state = Unlocked -> AF state = Locked)
+-- LTL version of above property
+LTLSPEC G(state = Unlocked -> F state = Locked)
+
+-- Fairness Properties:
+-- System is always running
+FAIRNESS running
+-- Fair code entry (both correct and incorrect codes can be entered)
+FAIRNESS code_entry = correct
+FAIRNESS code_entry = incorrect
+
+-- Define helper variables for simulation and verification
+DEFINE
+    door_is_locked    := state = Locked;
+    time_elapsed      := timer;
+    user_locked_door  := manual_lock;
+    running           := TRUE;  -- System is always running

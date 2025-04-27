@@ -1,0 +1,92 @@
+-- D/BSE/22/0012 - TYW Bandara 
+-- NuSMV model for a Railway Crossing system with emergency override and pedestrian signals
+
+MODULE main  
+VAR  
+  sensor : {detected, not_detected};  
+  traffic_light : {green, yellow, red};  
+  gate : {open, closing, closed, opening};  
+  train : {approaching, crossing, passed};  
+  pedestrian_signal : {walk, don_walk};  
+  override : {active, inactive};  
+  timer : 0..35;  
+
+ASSIGN  
+  -- Initial states  
+  init(sensor) := not_detected;  
+  init(traffic_light) := green;  
+  init(gate) := open;  
+  init(train) := passed;  
+  init(pedestrian_signal) := walk;  
+  init(override) := inactive;  
+  init(timer) := 0;  
+
+  -- Sensor transitions  
+  next(sensor) :=  
+    case  
+      train = approaching : detected;  
+      train = passed : not_detected;  
+      TRUE : sensor;  
+    esac;  
+
+  -- Traffic light transitions  
+  next(traffic_light) :=  
+    case  
+      override = active : red;  -- Emergency override locks red  
+      sensor = detected & timer >= 5 : red;  
+      train = passed & timer >= 30 : green;  
+      TRUE : traffic_light;  
+    esac;  
+
+  -- Gate transitions  
+  next(gate) :=  
+    case  
+      override = active & train != crossing : open;  -- Only allow override when safe  
+      override = active : open;  -- Emergency override forces open  
+      sensor = detected & timer >= 10 : closing;  
+      gate = closing & timer >= 12 : closed;  
+      train = passed & timer >= 30 : opening;  
+      gate = opening & timer >= 32 : open;  
+      TRUE : gate;  
+    esac;  
+
+  -- Train state transitions  
+  next(train) :=  
+    case  
+      sensor = detected & timer < 15 : approaching;  
+      timer = 15 : crossing;  
+      timer = 25 : passed;  
+      TRUE : train;  
+    esac;  
+
+  -- Pedestrian signal transitions  
+  next(pedestrian_signal) :=  
+    case  
+      traffic_light = red : don_walk;  
+      traffic_light = green : walk;  
+      TRUE : pedestrian_signal;  
+    esac;  
+
+  -- Timer logic  
+  next(timer) :=  
+    case  
+      timer < 35 : timer + 1;  
+      TRUE : 0;  
+    esac;  
+
+-- Temporal Logic Properties  
+
+-- Property 1: Gates close before train arrives  
+LTLSPEC G (sensor = detected -> F (gate = closed U train = crossing)); 
+-- Property 2: Gates never open while train is crossing   
+CTLSPEC AG (train = crossing -> gate = closed);  
+-- Property 3: Traffic light turns red before gates close 
+CTLSPEC AG (gate = closing -> traffic_light = red); 
+-- Property 4: Gates reopen after train passes   
+LTLSPEC G (train = passed -> F gate = open);  
+-- Property 5: Pedestrian signals align with traffic lights 
+CTLSPEC AG (traffic_light = red -> pedestrian_signal = don_walk); 
+
+
+-- After Fix 
+CTLSPEC AG (override = active -> train != crossing);  

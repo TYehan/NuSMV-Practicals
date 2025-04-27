@@ -1,0 +1,30 @@
+-- NuSMV model for a Railway Crossing system
+
+MODULE main
+VAR
+    -- train: TRUE if a train is detected at the crossing, FALSE otherwise
+    train : boolean;
+    -- gate: state of the crossing gate, can be 'open' or 'closed'
+    gate  : {open, closed};
+
+ASSIGN
+    -- initial condition: no train is present and the gate is open
+    init(train) := FALSE;
+    init(gate)  := open;
+
+    -- nondeterministic evolution of the train detection signal
+    next(train) := {FALSE, TRUE};
+
+    -- gate operation: close the gate when a train is detected, open it otherwise
+    next(gate) := case
+        train : closed;
+        !train: open;
+    esac;
+
+-- Specification: Whenever a train is detected, eventually the gate will become closed
+LTLSPEC
+    G ( train -> F (gate = closed) );
+
+-- Specification: Whenever there is no train, eventually the gate will be open
+LTLSPEC
+    G ( !train -> F (gate = open) );
